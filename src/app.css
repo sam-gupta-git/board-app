@@ -1,0 +1,49 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html, body {
+    @apply h-full overflow-hidden;
+  }
+  
+  #app {
+    @apply h-full;
+  }
+}
+
+@layer components {
+  .sticky-note {
+    @apply absolute p-4 rounded-lg shadow-lg cursor-move select-none;
+    @apply min-w-48 min-h-32 max-w-64;
+    @apply transition-all duration-200 ease-in-out;
+  }
+  
+  .sticky-note:hover {
+    @apply shadow-xl scale-105;
+  }
+  
+  .sticky-note.dragging {
+    @apply rotate-2 scale-110 shadow-2xl;
+  }
+  
+  .sticky-note.yellow {
+    @apply bg-sticky-yellow border-yellow-300;
+  }
+  
+  .sticky-note.pink {
+    @apply bg-sticky-pink border-pink-300;
+  }
+  
+  .sticky-note.blue {
+    @apply bg-sticky-blue border-blue-300;
+  }
+  
+  .sticky-note.green {
+    @apply bg-sticky-green border-green-300;
+  }
+  
+  .sticky-note.purple {
+    @apply bg-sticky-purple border-purple-300;
+  }
+}
