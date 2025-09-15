@@ -8,6 +8,7 @@
 	const dispatch = createEventDispatcher();
 	
 	let noteElement: HTMLDivElement;
+	let textareaElement: HTMLTextAreaElement;
 	let isEditing = false;
 	let isDragging = false;
 	let dragOffset = { x: 0, y: 0 };
@@ -16,21 +17,37 @@
 	let boardRect: DOMRect | null = null;
 	
 	// Update current values when note prop changes
-	$: currentText = note.text;
+	$: if (!isEditing) {
+		currentText = note.text;
+	}
 	$: currentPosition = { x: note.x, y: note.y };
+	
+	// Debug currentText changes
+	$: console.log('currentText changed to:', currentText);
+	
+	// Focus textarea when editing starts
+	$: if (isEditing && textareaElement) {
+		setTimeout(() => {
+			textareaElement.focus();
+			textareaElement.select(); // Select all text for easy editing
+		}, 0);
+	}
 	
 	// Handle text editing
 	function startEditing(event: MouseEvent) {
 		event.stopPropagation();
+		console.log('Starting text editing, current text:', note.text);
 		isEditing = true;
 	}
 	
 	function stopEditing() {
+		console.log('Stopping text editing, currentText:', currentText, 'note.text:', note.text);
 		isEditing = false;
 		if (currentText !== note.text) {
 			// Update local state
 			note.text = currentText;
 			note.updatedAt = Date.now();
+			console.log('Dispatching update with text:', currentText);
 			dispatch('update', note);
 		}
 	}
@@ -46,9 +63,18 @@
 		}
 	}
 	
+	function handleInput(event: Event) {
+		const target = event.target as HTMLTextAreaElement;
+		console.log('Textarea input:', target?.value);
+	}
+	
 	// Handle dragging
 	function startDrag(event: MouseEvent) {
-		if (isEditing) return;
+		// Don't start dragging if clicking on text area or controls
+		const target = event.target as HTMLElement;
+		if (isEditing || target.tagName === 'TEXTAREA' || target.closest('button')) {
+			return;
+		}
 		
 		isDragging = true;
 		const rect = noteElement.getBoundingClientRect();
@@ -140,18 +166,21 @@
 	<div class="relative h-full">
 		{#if isEditing}
 			<textarea
+				bind:this={textareaElement}
 				bind:value={currentText}
 				on:blur={stopEditing}
 				on:keydown={handleKeydown}
+				on:input={handleInput}
 				on:click={(e) => e.stopPropagation()}
+				on:mousedown={(e) => e.stopPropagation()}
 				class="w-full h-full bg-transparent border-none outline-none resize-none text-gray-800"
-				autofocus
 			></textarea>
 		{:else}
 			<div 
 				class="w-full h-full cursor-text"
 				on:click={(e) => startEditing(e)}
 				on:dblclick={(e) => startEditing(e)}
+				on:mousedown={(e) => e.stopPropagation()}
 			>
 				{currentText}
 			</div>
@@ -161,12 +190,14 @@
 		<div class="absolute top-1 right-1 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
 			<button
 				on:click={(e) => changeColor(e)}
+				on:mousedown={(e) => e.stopPropagation()}
 				class="w-4 h-4 rounded-full border border-gray-400 hover:scale-110 transition-transform"
 				style="background-color: var(--color-{note.color})"
 				title="Change color"
 			></button>
 			<button
 				on:click={(e) => deleteNoteHandler(e)}
+				on:mousedown={(e) => e.stopPropagation()}
 				class="w-4 h-4 bg-red-500 text-white rounded-full text-xs hover:bg-red-600 transition-colors"
 				title="Delete note"
 			>
