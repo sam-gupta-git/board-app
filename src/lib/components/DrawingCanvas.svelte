@@ -27,20 +27,21 @@
 			ctx = canvas.getContext('2d')!;
 			ctx.lineCap = 'round';
 			ctx.lineJoin = 'round';
-			
+
 			// Set canvas size to match container
 			const resizeCanvas = () => {
 				const rect = canvas.parentElement?.getBoundingClientRect();
 				if (rect) {
 					canvas.width = rect.width;
 					canvas.height = rect.height;
+					drawGrid();
 					redrawAllDrawings();
 				}
 			};
-			
+
 			resizeCanvas();
 			window.addEventListener('resize', resizeCanvas);
-			
+
 			return () => {
 				window.removeEventListener('resize', resizeCanvas);
 			};
@@ -54,18 +55,18 @@
 	
 	function redrawAllDrawings() {
 		if (!ctx || !drawingsData) return;
-		
-		// Clear main canvas
-		ctx.clearRect(0, 0, canvas.width, canvas.height);
-		
+
+		// Draw grid background first
+		drawGrid();
+
 		// Reset canvas state to prevent path bleeding
 		ctx.beginPath();
-		
+
 		// Draw all existing drawings on main canvas
 		drawingsData.forEach((drawing: Drawing) => {
 			drawPath(drawing.points, drawing.color, drawing.strokeWidth);
 		});
-		
+
 		// Reset canvas state after drawing
 		ctx.beginPath();
 	}
@@ -97,20 +98,23 @@
 	
 	function startDrawing(event: MouseEvent) {
 		if (disabled) return;
-		
+
 		isDrawing = true;
 		const rect = canvas.getBoundingClientRect();
 		const point = {
 			x: event.clientX - rect.left,
 			y: event.clientY - rect.top
 		};
-		
+
 		currentPath = [point];
 		lastPoint = point;
-		
+
+		// Redraw grid and existing drawings
+		redrawAllDrawings();
+
 		// Clear any existing path and start fresh
 		ctx.beginPath();
-		
+
 		// Set up drawing context for real-time drawing
 		ctx.strokeStyle = brushColor;
 		ctx.lineWidth = brushSize;
@@ -183,6 +187,58 @@
 	
 	function rgbToHex(r: number, g: number, b: number): string {
 		return "#" + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
+	}
+	
+	function drawGrid() {
+		if (!ctx) return;
+		
+		const gridSize = 20; // Grid spacing in pixels
+		const canvasWidth = canvas.width;
+		const canvasHeight = canvas.height;
+		
+		// Clear canvas
+		ctx.clearRect(0, 0, canvasWidth, canvasHeight);
+		
+		// Set grid style
+		ctx.strokeStyle = '#e5e7eb'; // Light gray color
+		ctx.lineWidth = 1;
+		ctx.setLineDash([]);
+		
+		// Draw vertical lines
+		for (let x = 0; x <= canvasWidth; x += gridSize) {
+			ctx.beginPath();
+			ctx.moveTo(x, 0);
+			ctx.lineTo(x, canvasHeight);
+			ctx.stroke();
+		}
+		
+		// Draw horizontal lines
+		for (let y = 0; y <= canvasHeight; y += gridSize) {
+			ctx.beginPath();
+			ctx.moveTo(0, y);
+			ctx.lineTo(canvasWidth, y);
+			ctx.stroke();
+		}
+		
+		// Draw major grid lines (every 5th line) with slightly darker color
+		ctx.strokeStyle = '#d1d5db'; // Slightly darker gray
+		ctx.lineWidth = 1;
+		
+		// Major vertical lines
+		for (let x = 0; x <= canvasWidth; x += gridSize * 5) {
+			ctx.beginPath();
+			ctx.moveTo(x, 0);
+			ctx.lineTo(x, canvasHeight);
+			ctx.stroke();
+		}
+		
+		// Major horizontal lines
+		for (let y = 0; y <= canvasHeight; y += gridSize * 5) {
+			ctx.beginPath();
+			ctx.moveTo(0, y);
+			ctx.lineTo(canvasWidth, y);
+			ctx.stroke();
+		}
 	}
 	
 	function handleMouseDown(event: MouseEvent) {
