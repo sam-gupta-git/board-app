@@ -98,6 +98,45 @@
 	function handleClearCancel() {
 		showClearModal = false;
 	}
+	
+	// Handle share
+	async function shareBoard() {
+		const boardUrl = window.location.href;
+		
+		// Check if Web Share API is available
+		if (navigator.share) {
+			try {
+				await navigator.share({
+					title: 'Board App - Collaborative Board',
+					text: 'Check out this collaborative board!',
+					url: boardUrl
+				});
+			} catch (error) {
+				// User cancelled or error occurred, fall back to clipboard
+				await copyToClipboard(boardUrl);
+			}
+		} else {
+			// Fall back to clipboard copy
+			await copyToClipboard(boardUrl);
+		}
+	}
+	
+	async function copyToClipboard(text: string) {
+		try {
+			await navigator.clipboard.writeText(text);
+			// You could add a toast notification here
+			alert('Board link copied to clipboard!');
+		} catch (error) {
+			// Fallback for older browsers
+			const textArea = document.createElement('textarea');
+			textArea.value = text;
+			document.body.appendChild(textArea);
+			textArea.select();
+			document.execCommand('copy');
+			document.body.removeChild(textArea);
+			alert('Board link copied to clipboard!');
+		}
+	}
 </script>
 
 <div 
@@ -135,14 +174,26 @@
 		{/each}
 	{/if}
 	
-	<!-- Clear All Button -->
-	<button
-		on:click={showClearAllModal}
-		class="absolute bottom-4 right-4 z-10 px-4 py-2 bg-red-500 text-white rounded-lg shadow-lg hover:bg-red-600 transition-colors font-medium"
-		title="Clear all notes and drawings"
-	>
-		Clear All
-	</button>
+	<!-- Action Buttons -->
+	<div class="absolute bottom-4 right-4 z-10 flex gap-2">
+		<!-- Share Button -->
+		<button
+			on:click={shareBoard}
+			class="px-4 py-2 bg-blue-500 text-white rounded-lg shadow-lg hover:bg-blue-600 transition-colors font-medium"
+			title="Share this board"
+		>
+			Share
+		</button>
+		
+		<!-- Clear All Button -->
+		<button
+			on:click={showClearAllModal}
+			class="px-4 py-2 bg-red-500 text-white rounded-lg shadow-lg hover:bg-red-600 transition-colors font-medium"
+			title="Clear all notes and drawings"
+		>
+			Clear All
+		</button>
+	</div>
 	
 	<!-- Loading state -->
 	{#if !isLoaded}
