@@ -34,7 +34,7 @@
 	
 	// Handle adding a new note
 	function addNote(event: MouseEvent) {
-		if (isCreatingNote) return;
+		if (!isCreatingNote) return;
 		
 		const rect = boardContainer.getBoundingClientRect();
 		const x = event.clientX - rect.left;
@@ -81,6 +81,14 @@
 	function handleNoteDelete(noteId: string) {
 		notes = notes.filter(note => note.id !== noteId);
 	}
+	
+	// Handle clear all
+	function clearAll() {
+		if (confirm('Are you sure you want to clear all notes and drawings? This action cannot be undone.')) {
+			notes = [];
+			drawings = [];
+		}
+	}
 </script>
 
 <div 
@@ -102,6 +110,7 @@
 	<DrawingCanvas 
 		{boardId}
 		{drawings}
+		disabled={isCreatingNote}
 		on:drawing-complete={(e) => handleDrawingComplete(e.detail.points, e.detail.color, e.detail.strokeWidth)}
 	/>
 	
@@ -116,6 +125,15 @@
 			/>
 		{/each}
 	{/if}
+	
+	<!-- Clear All Button -->
+	<button
+		on:click={clearAll}
+		class="absolute bottom-4 right-4 z-10 px-4 py-2 bg-red-500 text-white rounded-lg shadow-lg hover:bg-red-600 transition-colors font-medium"
+		title="Clear all notes and drawings"
+	>
+		Clear All
+	</button>
 	
 	<!-- Loading state -->
 	{#if !isLoaded}

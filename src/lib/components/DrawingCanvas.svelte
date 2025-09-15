@@ -4,6 +4,7 @@
 	
 	export let boardId: string;
 	export let drawings: Drawing[] = [];
+	export let disabled: boolean = false;
 	
 	const dispatch = createEventDispatcher();
 	
@@ -76,6 +77,8 @@
 	}
 	
 	function startDrawing(event: MouseEvent) {
+		if (disabled) return;
+		
 		isDrawing = true;
 		const rect = canvas.getBoundingClientRect();
 		const point = {
@@ -146,6 +149,8 @@
 	// Handle touch events for mobile
 	function handleTouchStart(event: TouchEvent) {
 		event.preventDefault();
+		if (disabled) return;
+		
 		const touch = event.touches[0];
 		const mouseEvent = new MouseEvent('mousedown', {
 			clientX: touch.clientX,
@@ -172,7 +177,7 @@
 
 <canvas
 	bind:this={canvas}
-	class="absolute inset-0 w-full h-full cursor-crosshair"
+	class="absolute inset-0 w-full h-full {disabled ? 'cursor-default' : 'cursor-crosshair'}"
 	on:mousedown={handleMouseDown}
 	on:mousemove={handleMouseMove}
 	on:mouseup={handleMouseUp}

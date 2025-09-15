@@ -85,7 +85,8 @@
 	}
 	
 	// Handle color change
-	function changeColor() {
+	function changeColor(event: MouseEvent) {
+		event.stopPropagation();
 		const colors = ['yellow', 'pink', 'blue', 'green', 'purple'];
 		const currentIndex = colors.indexOf(note.color);
 		const nextColor = colors[(currentIndex + 1) % colors.length];
@@ -96,7 +97,8 @@
 	}
 	
 	// Handle delete
-	function deleteNoteHandler() {
+	function deleteNoteHandler(event: MouseEvent) {
+		event.stopPropagation();
 		if (confirm('Delete this note?')) {
 			dispatch('delete', note.id);
 		}
@@ -148,13 +150,13 @@
 		<!-- Controls -->
 		<div class="absolute top-1 right-1 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
 			<button
-				on:click={changeColor}
+				on:click={(e) => changeColor(e)}
 				class="w-4 h-4 rounded-full border border-gray-400 hover:scale-110 transition-transform"
 				style="background-color: var(--color-{note.color})"
 				title="Change color"
 			></button>
 			<button
-				on:click={deleteNoteHandler}
+				on:click={(e) => deleteNoteHandler(e)}
 				class="w-4 h-4 bg-red-500 text-white rounded-full text-xs hover:bg-red-600 transition-colors"
 				title="Delete note"
 			>
