@@ -19,7 +19,8 @@
 	$: currentPosition = { x: note.x, y: note.y };
 	
 	// Handle text editing
-	function startEditing() {
+	function startEditing(event: MouseEvent) {
+		event.stopPropagation();
 		isEditing = true;
 	}
 	
@@ -134,14 +135,15 @@
 				bind:value={currentText}
 				on:blur={stopEditing}
 				on:keydown={handleKeydown}
+				on:click={(e) => e.stopPropagation()}
 				class="w-full h-full bg-transparent border-none outline-none resize-none text-gray-800"
 				autofocus
 			></textarea>
 		{:else}
 			<div 
 				class="w-full h-full cursor-text"
-				on:click={startEditing}
-				on:dblclick={startEditing}
+				on:click={(e) => startEditing(e)}
+				on:dblclick={(e) => startEditing(e)}
 			>
 				{currentText}
 			</div>

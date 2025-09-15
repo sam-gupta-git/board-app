@@ -36,21 +36,23 @@
 		{isCreatingNote ? 'Cancel' : 'Add Note'}
 	</button>
 	
-	<!-- Color Picker -->
-	<div class="flex items-center gap-2">
-		<span class="text-sm text-gray-600">Color:</span>
-		<div class="flex gap-1">
-			{#each colors as color}
-				<button
-					on:click={(e) => selectColor(color.name, e)}
-					class="w-8 h-8 rounded-full border-2 transition-all {color.class} {selectedColor === color.name 
-						? 'border-gray-800 scale-110' 
-						: 'border-gray-300 hover:scale-105'}"
-					title={color.label}
-				></button>
-			{/each}
+	<!-- Color Picker - Only show when creating notes -->
+	{#if isCreatingNote}
+		<div class="flex items-center gap-2">
+			<span class="text-sm text-gray-600">Color:</span>
+			<div class="flex gap-1">
+				{#each colors as color}
+					<button
+						on:click={(e) => selectColor(color.name, e)}
+						class="w-8 h-8 rounded-full border-2 transition-all {color.class} {selectedColor === color.name 
+							? 'border-gray-800 scale-110' 
+							: 'border-gray-300 hover:scale-105'}"
+						title={color.label}
+					></button>
+				{/each}
+			</div>
 		</div>
-	</div>
+	{/if}
 	
 	<!-- Instructions -->
 	{#if isCreatingNote}
