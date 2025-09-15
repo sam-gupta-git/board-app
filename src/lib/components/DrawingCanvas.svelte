@@ -55,9 +55,13 @@
 	}
 	
 	// Redraw grid when dark mode changes
-	$: if (ctx) {
+	$: if (ctx && isDarkMode !== undefined) {
+		// Force a redraw when dark mode changes
 		redrawAllDrawings();
 	}
+	
+	// Additional reactive statement specifically for dark mode changes
+	$: isDarkMode, ctx, redrawAllDrawings();
 	
 	function redrawAllDrawings() {
 		if (!ctx || !drawingsData) return;
