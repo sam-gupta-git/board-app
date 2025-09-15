@@ -17,6 +17,15 @@ export interface Drawing {
 	createdAt: number;
 }
 
+export interface Fill {
+	id: string;
+	boardId: string;
+	x: number;
+	y: number;
+	color: string;
+	createdAt: number;
+}
+
 export interface Image {
 	id: string;
 	boardId: string;
@@ -35,5 +44,6 @@ export interface Board {
 	lastAccessedAt: number;
 	notes: Note[];
 	drawings: Drawing[];
+	fills: Fill[];
 	images: Image[];
 }

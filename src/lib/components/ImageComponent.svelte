@@ -4,10 +4,12 @@
 	
 	export let image: Image;
 	export let boardId: string;
+	export let currentTool: string = 'brush';
 	
 	const dispatch = createEventDispatcher();
 	
 	let imageElement: HTMLDivElement;
+	let imgElement: HTMLImageElement;
 	let isDragging = false;
 	let dragOffset = { x: 0, y: 0 };
 	let currentPosition = { x: image.x, y: image.y };
@@ -21,7 +23,7 @@
 	
 	// Handle dragging
 	function startDrag(event: MouseEvent) {
-		if (isResizing) return;
+		if (isResizing || currentTool === 'color-picker') return;
 		
 		isDragging = true;
 		const rect = imageElement.getBoundingClientRect();
@@ -62,6 +64,8 @@
 	// Handle resizing
 	function startResize(event: MouseEvent, handle: string) {
 		event.stopPropagation();
+		if (currentTool === 'color-picker') return;
+		
 		isResizing = true;
 		resizeHandle = handle;
 		
@@ -142,6 +146,52 @@
 		}
 	}
 	
+	// Handle color picking from image
+	function handleImageClick(event: MouseEvent) {
+		if (currentTool === 'color-picker') {
+			event.stopPropagation();
+			pickColorFromImage(event);
+		}
+	}
+	
+	function pickColorFromImage(event: MouseEvent) {
+		if (!imgElement) return;
+		
+		// Create a temporary canvas to sample the color
+		const canvas = document.createElement('canvas');
+		const ctx = canvas.getContext('2d');
+		if (!ctx) return;
+		
+		// Set canvas size to match the displayed image size
+		canvas.width = currentSize.width;
+		canvas.height = currentSize.height;
+		
+		// Draw the image onto the canvas
+		ctx.drawImage(imgElement, 0, 0, currentSize.width, currentSize.height);
+		
+		// Get the click position relative to the image
+		const rect = imageElement.getBoundingClientRect();
+		const x = event.clientX - rect.left;
+		const y = event.clientY - rect.top;
+		
+		// Sample the color at the clicked position
+		const imageData = ctx.getImageData(x, y, 1, 1);
+		const data = imageData.data;
+		
+		// Convert RGBA to hex
+		const r = data[0];
+		const g = data[1];
+		const b = data[2];
+		const hexColor = rgbToHex(r, g, b);
+		
+		// Dispatch the color pick event
+		dispatch('color-pick', { color: hexColor });
+	}
+	
+	function rgbToHex(r: number, g: number, b: number): string {
+		return "#" + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
+	}
+	
 	// Set up global mouse events for dragging and resizing
 	onMount(() => {
 		const handleGlobalMouseMove = (event: MouseEvent) => {
@@ -173,10 +223,12 @@
 >
 	<!-- Image -->
 	<img
+		bind:this={imgElement}
 		src={image.src}
 		alt="Uploaded image"
-		class="w-full h-full object-contain border border-gray-300 rounded-lg"
+		class="w-full h-full object-contain border border-gray-300 rounded-lg {currentTool === 'color-picker' ? 'cursor-crosshair' : ''}"
 		draggable="false"
+		on:click={handleImageClick}
 	/>
 	
 	<!-- Controls -->

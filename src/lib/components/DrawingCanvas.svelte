@@ -7,6 +7,7 @@
 	export let disabled: boolean = false;
 	export let brushSize: number = 2;
 	export let brushColor: string = '#000000';
+	export let currentTool: string = 'brush';
 	
 	const dispatch = createEventDispatcher();
 	
@@ -93,6 +94,7 @@
 		ctx.restore();
 	}
 	
+	
 	function startDrawing(event: MouseEvent) {
 		if (disabled) return;
 		
@@ -155,9 +157,42 @@
 		currentPath = [];
 	}
 	
+	function handleColorPick(event: MouseEvent) {
+		if (disabled) return;
+		
+		const rect = canvas.getBoundingClientRect();
+		const x = event.clientX - rect.left;
+		const y = event.clientY - rect.top;
+		
+		// Sample color from canvas at the clicked position
+		const imageData = ctx.getImageData(x, y, 1, 1);
+		const data = imageData.data;
+		
+		// Convert RGBA to hex
+		const r = data[0];
+		const g = data[1];
+		const b = data[2];
+		const a = data[3];
+		
+		// Convert to hex color
+		const hexColor = rgbToHex(r, g, b);
+		
+		// Dispatch the color pick event
+		dispatch('color-pick', { color: hexColor });
+	}
+	
+	function rgbToHex(r: number, g: number, b: number): string {
+		return "#" + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
+	}
+	
 	function handleMouseDown(event: MouseEvent) {
 		event.preventDefault();
-		startDrawing(event);
+		
+		if (currentTool === 'color-picker') {
+			handleColorPick(event);
+		} else {
+			startDrawing(event);
+		}
 	}
 	
 	function handleMouseMove(event: MouseEvent) {

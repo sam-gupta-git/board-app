@@ -15,9 +15,10 @@
 	let drawings: Drawing[] = [];
 	let images: Image[] = [];
 	let isLoaded = false;
+	let currentTool = 'brush';
 	
 	// Type-safe board data
-	$: boardData = { id: boardId, createdAt: Date.now(), lastAccessedAt: Date.now(), notes, drawings, images };
+	$: boardData = { id: boardId, createdAt: Date.now(), lastAccessedAt: Date.now(), notes, drawings, fills: [], images };
 	
 	onMount(() => {
 		// For now, just set loaded to true
@@ -148,6 +149,15 @@
 		brushColor = event.detail.color;
 	}
 	
+	function handleToolChange(event: CustomEvent) {
+		currentTool = event.detail.tool;
+	}
+	
+	// Handle color pick
+	function handleColorPick(event: CustomEvent) {
+		brushColor = event.detail.color;
+	}
+	
 	// Handle share
 	async function shareBoard() {
 		const boardUrl = window.location.href;
@@ -211,7 +221,9 @@
 		disabled={isCreatingNote}
 		{brushSize}
 		{brushColor}
+		{currentTool}
 		on:drawing-complete={(e) => handleDrawingComplete(e.detail.points, e.detail.color, e.detail.strokeWidth)}
+		on:color-pick={handleColorPick}
 	/>
 	
 	<!-- Sticky Notes -->
@@ -232,8 +244,10 @@
 			<ImageComponent 
 				{image}
 				{boardId}
+				{currentTool}
 				on:update={(e) => handleImageUpdate(e.detail)}
 				on:delete={(e) => handleImageDelete(e.detail)}
+				on:color-pick={handleColorPick}
 			/>
 		{/each}
 	{/if}
@@ -242,8 +256,10 @@
 	<DrawingControls
 		{brushSize}
 		{brushColor}
+		{currentTool}
 		on:brush-size-change={handleBrushSizeChange}
 		on:brush-color-change={handleBrushColorChange}
+		on:tool-change={handleToolChange}
 	/>
 	
 	<!-- Action Buttons -->
