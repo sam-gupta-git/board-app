@@ -6,6 +6,7 @@
 	import DrawingCanvas from './DrawingCanvas.svelte';
 	import ConfirmationModal from './ConfirmationModal.svelte';
 	import ImageComponent from './ImageComponent.svelte';
+	import DrawingControls from './DrawingControls.svelte';
 	
 	export let boardId: string;
 	
@@ -28,6 +29,8 @@
 	let isCreatingNote = false;
 	let selectedColor = 'yellow';
 	let showClearModal = false;
+	let brushSize = 2;
+	let brushColor = '#000000';
 	
 	// Initialize board on mount
 	onMount(() => {
@@ -136,6 +139,15 @@
 		images = images.filter(img => img.id !== imageId);
 	}
 	
+	// Handle drawing control changes
+	function handleBrushSizeChange(event: CustomEvent) {
+		brushSize = event.detail.size;
+	}
+	
+	function handleBrushColorChange(event: CustomEvent) {
+		brushColor = event.detail.color;
+	}
+	
 	// Handle share
 	async function shareBoard() {
 		const boardUrl = window.location.href;
@@ -197,6 +209,8 @@
 		{boardId}
 		{drawings}
 		disabled={isCreatingNote}
+		{brushSize}
+		{brushColor}
 		on:drawing-complete={(e) => handleDrawingComplete(e.detail.points, e.detail.color, e.detail.strokeWidth)}
 	/>
 	
@@ -223,6 +237,14 @@
 			/>
 		{/each}
 	{/if}
+	
+	<!-- Drawing Controls -->
+	<DrawingControls
+		{brushSize}
+		{brushColor}
+		on:brush-size-change={handleBrushSizeChange}
+		on:brush-color-change={handleBrushColorChange}
+	/>
 	
 	<!-- Action Buttons -->
 	<div class="absolute bottom-4 right-4 z-10 flex gap-2">

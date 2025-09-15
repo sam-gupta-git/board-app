@@ -5,6 +5,8 @@
 	export let boardId: string;
 	export let drawings: Drawing[] = [];
 	export let disabled: boolean = false;
+	export let brushSize: number = 2;
+	export let brushColor: string = '#000000';
 	
 	const dispatch = createEventDispatcher();
 	
@@ -15,8 +17,6 @@
 	let ctx: CanvasRenderingContext2D;
 	let isDrawing = false;
 	let currentPath: Array<{x: number, y: number}> = [];
-	let currentColor = '#000000';
-	let currentStrokeWidth = 2;
 	
 	// Drawing state
 	let lastPoint = { x: 0, y: 0 };
@@ -54,18 +54,32 @@
 	function redrawAllDrawings() {
 		if (!ctx || !drawingsData) return;
 		
+		// Clear main canvas
 		ctx.clearRect(0, 0, canvas.width, canvas.height);
 		
+		// Reset canvas state to prevent path bleeding
+		ctx.beginPath();
+		
+		// Draw all existing drawings on main canvas
 		drawingsData.forEach((drawing: Drawing) => {
 			drawPath(drawing.points, drawing.color, drawing.strokeWidth);
 		});
+		
+		// Reset canvas state after drawing
+		ctx.beginPath();
 	}
 	
 	function drawPath(points: Array<{x: number, y: number}>, color: string, strokeWidth: number) {
 		if (points.length < 2) return;
 		
+		// Save current context state
+		ctx.save();
+		
+		// Set up this specific path
 		ctx.strokeStyle = color;
 		ctx.lineWidth = strokeWidth;
+		ctx.lineCap = 'round';
+		ctx.lineJoin = 'round';
 		ctx.beginPath();
 		ctx.moveTo(points[0].x, points[0].y);
 		
@@ -74,6 +88,9 @@
 		}
 		
 		ctx.stroke();
+		
+		// Restore context state
+		ctx.restore();
 	}
 	
 	function startDrawing(event: MouseEvent) {
@@ -89,10 +106,14 @@
 		currentPath = [point];
 		lastPoint = point;
 		
-		// Start drawing immediately for better UX
-		ctx.strokeStyle = currentColor;
-		ctx.lineWidth = currentStrokeWidth;
+		// Clear any existing path and start fresh
 		ctx.beginPath();
+		
+		// Set up drawing context for real-time drawing
+		ctx.strokeStyle = brushColor;
+		ctx.lineWidth = brushSize;
+		ctx.lineCap = 'round';
+		ctx.lineJoin = 'round';
 		ctx.moveTo(point.x, point.y);
 	}
 	
@@ -107,9 +128,7 @@
 		
 		currentPath.push(point);
 		
-		// Draw line from last point to current point
-		ctx.beginPath();
-		ctx.moveTo(lastPoint.x, lastPoint.y);
+		// Draw directly on main canvas for real-time feedback
 		ctx.lineTo(point.x, point.y);
 		ctx.stroke();
 		
@@ -121,12 +140,15 @@
 		
 		isDrawing = false;
 		
+		// Reset canvas state to prevent path bleeding
+		ctx.beginPath();
+		
 		// Only save if we have enough points
 		if (currentPath.length > 1) {
 			dispatch('drawing-complete', {
 				points: currentPath,
-				color: currentColor,
-				strokeWidth: currentStrokeWidth
+				color: brushColor,
+				strokeWidth: brushSize
 			});
 		}
 		
