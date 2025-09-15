@@ -47,16 +47,30 @@
 	<!-- Add Note Button -->
 	<button
 		on:click={(e) => toggleCreate(e)}
-		class="px-4 py-2 rounded-lg font-medium transition-colors {isCreatingNote 
+		class="p-3 rounded-lg font-medium transition-colors {isCreatingNote 
 			? 'bg-blue-600 text-white' 
 			: 'bg-gray-100 text-gray-700 hover:bg-gray-200'}"
+		title={isCreatingNote ? 'Cancel adding notes' : 'Add sticky note'}
 	>
-		{isCreatingNote ? 'Cancel' : 'Add Note'}
+		{#if isCreatingNote}
+			<!-- Cancel Icon -->
+			<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+				<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+			</svg>
+		{:else}
+			<!-- Add Note Icon -->
+			<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+				<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+			</svg>
+		{/if}
 	</button>
 	
 	<!-- Image Upload Button -->
-	<label class="px-4 py-2 bg-green-500 text-white rounded-lg font-medium hover:bg-green-600 transition-colors cursor-pointer">
-		Upload Image
+	<label class="p-3 bg-green-500 text-white rounded-lg font-medium hover:bg-green-600 transition-colors cursor-pointer" title="Upload image">
+		<!-- Upload Icon -->
+		<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+			<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+		</svg>
 		<input
 			type="file"
 			accept="image/*"
