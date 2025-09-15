@@ -107,7 +107,9 @@
 		
 		currentPath.push(point);
 		
-		// Draw line to current point
+		// Draw line from last point to current point
+		ctx.beginPath();
+		ctx.moveTo(lastPoint.x, lastPoint.y);
 		ctx.lineTo(point.x, point.y);
 		ctx.stroke();
 		
