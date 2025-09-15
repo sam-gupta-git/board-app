@@ -4,6 +4,7 @@
 	import StickyNote from './StickyNote.svelte';
 	import Toolbar from './Toolbar.svelte';
 	import DrawingCanvas from './DrawingCanvas.svelte';
+	import ConfirmationModal from './ConfirmationModal.svelte';
 	
 	export let boardId: string;
 	
@@ -24,6 +25,7 @@
 	let boardContainer: HTMLDivElement;
 	let isCreatingNote = false;
 	let selectedColor = 'yellow';
+	let showClearModal = false;
 	
 	// Initialize board on mount
 	onMount(() => {
@@ -83,11 +85,18 @@
 	}
 	
 	// Handle clear all
-	function clearAll() {
-		if (confirm('Are you sure you want to clear all notes and drawings? This action cannot be undone.')) {
-			notes = [];
-			drawings = [];
-		}
+	function showClearAllModal() {
+		showClearModal = true;
+	}
+	
+	function handleClearConfirm() {
+		notes = [];
+		drawings = [];
+		showClearModal = false;
+	}
+	
+	function handleClearCancel() {
+		showClearModal = false;
 	}
 </script>
 
@@ -128,7 +137,7 @@
 	
 	<!-- Clear All Button -->
 	<button
-		on:click={clearAll}
+		on:click={showClearAllModal}
 		class="absolute bottom-4 right-4 z-10 px-4 py-2 bg-red-500 text-white rounded-lg shadow-lg hover:bg-red-600 transition-colors font-medium"
 		title="Clear all notes and drawings"
 	>
@@ -145,6 +154,18 @@
 		</div>
 	{/if}
 </div>
+
+<!-- Confirmation Modal -->
+<ConfirmationModal
+	bind:isOpen={showClearModal}
+	title="Clear All Content"
+	message="Are you sure you want to clear all notes and drawings? This action cannot be undone."
+	confirmText="Clear All"
+	cancelText="Cancel"
+	confirmButtonClass="bg-red-500 hover:bg-red-600"
+	on:confirm={handleClearConfirm}
+	on:cancel={handleClearCancel}
+/>
 
 <style>
 	.board-container {
