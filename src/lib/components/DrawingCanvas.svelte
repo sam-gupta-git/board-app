@@ -8,6 +8,7 @@
 	export let brushSize: number = 2;
 	export let brushColor: string = '#000000';
 	export let currentTool: string = 'brush';
+	export let isDarkMode: boolean = false;
 	
 	const dispatch = createEventDispatcher();
 	
@@ -50,6 +51,11 @@
 	
 	// Redraw all drawings when data changes
 	$: if (drawingsData && ctx) {
+		redrawAllDrawings();
+	}
+	
+	// Redraw grid when dark mode changes
+	$: if (ctx) {
 		redrawAllDrawings();
 	}
 	
@@ -199,8 +205,11 @@
 		// Clear canvas
 		ctx.clearRect(0, 0, canvasWidth, canvasHeight);
 		
-		// Set grid style
-		ctx.strokeStyle = '#e5e7eb'; // Light gray color
+		// Set grid style based on dark mode
+		const minorColor = isDarkMode ? '#374151' : '#e5e7eb'; // Dark gray for dark mode, light gray for light mode
+		const majorColor = isDarkMode ? '#4b5563' : '#d1d5db'; // Slightly lighter dark gray for dark mode
+		
+		ctx.strokeStyle = minorColor;
 		ctx.lineWidth = 1;
 		ctx.setLineDash([]);
 		
@@ -221,7 +230,7 @@
 		}
 		
 		// Draw major grid lines (every 5th line) with slightly darker color
-		ctx.strokeStyle = '#d1d5db'; // Slightly darker gray
+		ctx.strokeStyle = majorColor;
 		ctx.lineWidth = 1;
 		
 		// Major vertical lines
