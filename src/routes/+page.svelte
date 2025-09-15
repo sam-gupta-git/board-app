@@ -1,9 +1,15 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
+	import { onMount } from 'svelte';
 	
 	let boardId = '';
 	let isCreating = false;
 	let isDarkMode = false; // Dark mode state
+	
+	// Save dark mode to localStorage when it changes
+	$: if (typeof window !== 'undefined') {
+		localStorage.setItem('darkMode', JSON.stringify(isDarkMode));
+	}
 	
 	function createBoard() {
 		const newBoardId = crypto.randomUUID().substring(0, 8);
@@ -26,6 +32,14 @@
 	function toggleDarkMode() {
 		isDarkMode = !isDarkMode;
 	}
+	
+	// Load dark mode preference on mount
+	onMount(() => {
+		const savedDarkMode = localStorage.getItem('darkMode');
+		if (savedDarkMode !== null) {
+			isDarkMode = JSON.parse(savedDarkMode);
+		}
+	});
 </script>
 
 <svelte:head>

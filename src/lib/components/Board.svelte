@@ -21,7 +21,18 @@
 	// Type-safe board data
 	$: boardData = { id: boardId, createdAt: Date.now(), lastAccessedAt: Date.now(), notes, drawings, fills: [], images };
 	
+	// Save dark mode to localStorage when it changes
+	$: if (typeof window !== 'undefined') {
+		localStorage.setItem('darkMode', JSON.stringify(isDarkMode));
+	}
+	
 	onMount(() => {
+		// Load dark mode preference from localStorage
+		const savedDarkMode = localStorage.getItem('darkMode');
+		if (savedDarkMode !== null) {
+			isDarkMode = JSON.parse(savedDarkMode);
+		}
+		
 		// For now, just set loaded to true
 		// Later we'll add Convex integration here
 		isLoaded = true;
