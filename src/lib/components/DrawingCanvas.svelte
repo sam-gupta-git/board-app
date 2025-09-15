@@ -1,15 +1,11 @@
 <script lang="ts">
 	import { onMount, createEventDispatcher } from 'svelte';
-	import { useQuery, useMutation } from 'convex/react';
-	import { api } from '../../../convex/_generated/api';
 	import type { Drawing } from '$lib/types';
 	
 	export let boardId: string;
+	export let drawings: Drawing[] = [];
 	
 	const dispatch = createEventDispatcher();
-	
-	// Convex queries
-	const drawings = useQuery(api.drawings.getDrawings, { boardId });
 	
 	// Type-safe drawings data
 	$: drawingsData = drawings || [];

@@ -1,7 +1,5 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { useQuery, useMutation } from 'convex/react';
-	import { api } from '../../../convex/_generated/api';
 	import type { Board, Note, Drawing } from '$lib/types';
 	import StickyNote from './StickyNote.svelte';
 	import Toolbar from './Toolbar.svelte';
@@ -9,13 +7,19 @@
 	
 	export let boardId: string;
 	
-	// Convex queries and mutations
-	const board = useQuery(api.boards.getBoard, { boardId });
-	const createNote = useMutation(api.notes.createNote);
-	const createDrawing = useMutation(api.drawings.createDrawing);
+	// Local state for now (we'll add Convex later)
+	let notes: Note[] = [];
+	let drawings: Drawing[] = [];
+	let isLoaded = false;
 	
 	// Type-safe board data
-	$: boardData = board || { id: boardId, createdAt: Date.now(), lastAccessedAt: Date.now(), notes: [], drawings: [] };
+	$: boardData = { id: boardId, createdAt: Date.now(), lastAccessedAt: Date.now(), notes, drawings };
+	
+	onMount(() => {
+		// For now, just set loaded to true
+		// Later we'll add Convex integration here
+		isLoaded = true;
+	});
 	
 	let boardContainer: HTMLDivElement;
 	let isCreatingNote = false;
@@ -29,43 +33,53 @@
 	});
 	
 	// Handle adding a new note
-	async function addNote(event: MouseEvent) {
+	function addNote(event: MouseEvent) {
 		if (isCreatingNote) return;
 		
 		const rect = boardContainer.getBoundingClientRect();
 		const x = event.clientX - rect.left;
 		const y = event.clientY - rect.top;
 		
-		try {
-			await createNote({
-				boardId,
-				text: 'New note',
-				x,
-				y,
-				color: selectedColor,
-			});
-		} catch (error) {
-			console.error('Failed to create note:', error);
-		}
+		const newNote: Note = {
+			id: crypto.randomUUID(),
+			text: 'New note',
+			x,
+			y,
+			color: selectedColor,
+			createdAt: Date.now(),
+			updatedAt: Date.now(),
+		};
+		
+		notes = [...notes, newNote];
 	}
 	
 	// Handle drawing creation
-	async function handleDrawingComplete(points: Array<{x: number, y: number}>, color: string, strokeWidth: number) {
-		try {
-			await createDrawing({
-				boardId,
-				points,
-				color,
-				strokeWidth,
-			});
-		} catch (error) {
-			console.error('Failed to create drawing:', error);
-		}
+	function handleDrawingComplete(points: Array<{x: number, y: number}>, color: string, strokeWidth: number) {
+		const newDrawing: Drawing = {
+			id: crypto.randomUUID(),
+			boardId,
+			points,
+			color,
+			strokeWidth,
+			createdAt: Date.now(),
+		};
+		
+		drawings = [...drawings, newDrawing];
 	}
 	
 	// Handle color selection
 	function selectColor(color: string) {
 		selectedColor = color;
+	}
+	
+	// Handle note updates
+	function handleNoteUpdate(updatedNote: Note) {
+		notes = notes.map(note => note.id === updatedNote.id ? updatedNote : note);
+	}
+	
+	// Handle note deletion
+	function handleNoteDelete(noteId: string) {
+		notes = notes.filter(note => note.id !== noteId);
 	}
 </script>
 
@@ -87,6 +101,7 @@
 	<!-- Drawing Canvas -->
 	<DrawingCanvas 
 		{boardId}
+		{drawings}
 		on:drawing-complete={(e) => handleDrawingComplete(e.detail.points, e.detail.color, e.detail.strokeWidth)}
 	/>
 	
@@ -96,12 +111,14 @@
 			<StickyNote 
 				{note}
 				{boardId}
+				on:update={(e) => handleNoteUpdate(e.detail)}
+				on:delete={(e) => handleNoteDelete(e.detail)}
 			/>
 		{/each}
 	{/if}
 	
 	<!-- Loading state -->
-	{#if !board}
+	{#if !isLoaded}
 		<div class="absolute inset-0 flex items-center justify-center">
 			<div class="text-center">
 				<div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>

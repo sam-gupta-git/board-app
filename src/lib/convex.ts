@@ -1,9 +1,1 @@
-import { ConvexReactClient } from 'convex/react';
-
-const convexUrl = import.meta.env.VITE_CONVEX_URL;
-
-if (!convexUrl) {
-	throw new Error('Missing VITE_CONVEX_URL environment variable');
-}
-
-export const convex = new ConvexReactClient(convexUrl);
+// This file is no longer needed as we handle Convex initialization in ClientOnlyBoard.svelte

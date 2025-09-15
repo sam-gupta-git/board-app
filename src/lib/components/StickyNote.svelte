@@ -1,19 +1,11 @@
 <script lang="ts">
 	import { onMount, createEventDispatcher } from 'svelte';
-	import { useMutation } from 'convex/react';
-	import { api } from '../../../convex/_generated/api';
 	import type { Note } from '$lib/types';
 	
 	export let note: Note;
 	export let boardId: string;
 	
 	const dispatch = createEventDispatcher();
-	
-	// Convex mutations
-	const updateNoteText = useMutation(api.notes.updateNoteText);
-	const updateNotePosition = useMutation(api.notes.updateNotePosition);
-	const updateNoteColor = useMutation(api.notes.updateNoteColor);
-	const deleteNote = useMutation(api.notes.deleteNote);
 	
 	let noteElement: HTMLDivElement;
 	let isEditing = false;
@@ -34,7 +26,10 @@
 	function stopEditing() {
 		isEditing = false;
 		if (currentText !== note.text) {
-			updateNoteText({ noteId: note.id, text: currentText });
+			// Update local state
+			note.text = currentText;
+			note.updatedAt = Date.now();
+			dispatch('update', note);
 		}
 	}
 	
@@ -82,12 +77,11 @@
 		isDragging = false;
 		noteElement.classList.remove('dragging');
 		
-		// Update position in database
-		updateNotePosition({
-			noteId: note.id,
-			x: currentPosition.x,
-			y: currentPosition.y
-		});
+		// Update position in local state
+		note.x = currentPosition.x;
+		note.y = currentPosition.y;
+		note.updatedAt = Date.now();
+		dispatch('update', note);
 	}
 	
 	// Handle color change
@@ -96,13 +90,15 @@
 		const currentIndex = colors.indexOf(note.color);
 		const nextColor = colors[(currentIndex + 1) % colors.length];
 		
-		updateNoteColor({ noteId: note.id, color: nextColor });
+		note.color = nextColor;
+		note.updatedAt = Date.now();
+		dispatch('update', note);
 	}
 	
 	// Handle delete
-	async function deleteNoteHandler() {
+	function deleteNoteHandler() {
 		if (confirm('Delete this note?')) {
-			await deleteNote({ noteId: note.id });
+			dispatch('delete', note.id);
 		}
 	}
 	
