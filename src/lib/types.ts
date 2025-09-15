@@ -17,10 +17,23 @@ export interface Drawing {
 	createdAt: number;
 }
 
+export interface Image {
+	id: string;
+	boardId: string;
+	src: string;
+	x: number;
+	y: number;
+	width: number;
+	height: number;
+	createdAt: number;
+	updatedAt: number;
+}
+
 export interface Board {
 	id: string;
 	createdAt: number;
 	lastAccessedAt: number;
 	notes: Note[];
 	drawings: Drawing[];
+	images: Image[];
 }

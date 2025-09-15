@@ -1,20 +1,22 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import type { Board, Note, Drawing } from '$lib/types';
+	import type { Board, Note, Drawing, Image } from '$lib/types';
 	import StickyNote from './StickyNote.svelte';
 	import Toolbar from './Toolbar.svelte';
 	import DrawingCanvas from './DrawingCanvas.svelte';
 	import ConfirmationModal from './ConfirmationModal.svelte';
+	import ImageComponent from './ImageComponent.svelte';
 	
 	export let boardId: string;
 	
 	// Local state for now (we'll add Convex later)
 	let notes: Note[] = [];
 	let drawings: Drawing[] = [];
+	let images: Image[] = [];
 	let isLoaded = false;
 	
 	// Type-safe board data
-	$: boardData = { id: boardId, createdAt: Date.now(), lastAccessedAt: Date.now(), notes, drawings };
+	$: boardData = { id: boardId, createdAt: Date.now(), lastAccessedAt: Date.now(), notes, drawings, images };
 	
 	onMount(() => {
 		// For now, just set loaded to true
@@ -92,11 +94,46 @@
 	function handleClearConfirm() {
 		notes = [];
 		drawings = [];
+		images = [];
 		showClearModal = false;
 	}
 	
 	function handleClearCancel() {
 		showClearModal = false;
+	}
+	
+	// Handle image upload
+	function handleImageUpload(event: CustomEvent) {
+		const { src } = event.detail;
+		
+		// Create a temporary image to get dimensions
+		const img = new Image();
+		img.onload = () => {
+			const newImage: Image = {
+				id: crypto.randomUUID(),
+				boardId,
+				src,
+				x: 100, // Default position
+				y: 100,
+				width: Math.min(img.width, 300), // Max width of 300px
+				height: Math.min(img.height, 300), // Max height of 300px
+				createdAt: Date.now(),
+				updatedAt: Date.now(),
+			};
+			
+			images = [...images, newImage];
+		};
+		img.src = src;
+	}
+	
+	// Handle image updates
+	function handleImageUpdate(updatedImage: Image) {
+		images = images.map(img => img.id === updatedImage.id ? updatedImage : img);
+	}
+	
+	// Handle image deletion
+	function handleImageDelete(imageId: string) {
+		images = images.filter(img => img.id !== imageId);
 	}
 	
 	// Handle share
@@ -152,6 +189,7 @@
 		{selectedColor}
 		on:color-select={(e) => selectColor(e.detail.color)}
 		on:toggle-create={(e) => isCreatingNote = e.detail.enabled}
+		on:image-upload={handleImageUpload}
 	/>
 	
 	<!-- Drawing Canvas -->
@@ -170,6 +208,18 @@
 				{boardId}
 				on:update={(e) => handleNoteUpdate(e.detail)}
 				on:delete={(e) => handleNoteDelete(e.detail)}
+			/>
+		{/each}
+	{/if}
+	
+	<!-- Images -->
+	{#if boardData.images}
+		{#each boardData.images as image (image.id)}
+			<ImageComponent 
+				{image}
+				{boardId}
+				on:update={(e) => handleImageUpdate(e.detail)}
+				on:delete={(e) => handleImageDelete(e.detail)}
 			/>
 		{/each}
 	{/if}

@@ -23,6 +23,24 @@
 		event.stopPropagation();
 		dispatch('toggle-create', { enabled: !isCreatingNote });
 	}
+	
+	function handleImageUpload(event: Event) {
+		event.stopPropagation();
+		const input = event.target as HTMLInputElement;
+		const file = input.files?.[0];
+		
+		if (file && file.type.startsWith('image/')) {
+			const reader = new FileReader();
+			reader.onload = (e) => {
+				const src = e.target?.result as string;
+				dispatch('image-upload', { src, file });
+			};
+			reader.readAsDataURL(file);
+		}
+		
+		// Reset input value so the same file can be selected again
+		input.value = '';
+	}
 </script>
 
 <div class="absolute top-4 left-4 z-10 bg-white rounded-lg shadow-lg p-4 flex items-center gap-4">
@@ -35,6 +53,17 @@
 	>
 		{isCreatingNote ? 'Cancel' : 'Add Note'}
 	</button>
+	
+	<!-- Image Upload Button -->
+	<label class="px-4 py-2 bg-green-500 text-white rounded-lg font-medium hover:bg-green-600 transition-colors cursor-pointer">
+		Upload Image
+		<input
+			type="file"
+			accept="image/*"
+			on:change={handleImageUpload}
+			class="hidden"
+		/>
+	</label>
 	
 	<!-- Color Picker - Only show when creating notes -->
 	{#if isCreatingNote}
