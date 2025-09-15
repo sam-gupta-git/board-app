@@ -13,6 +13,7 @@
 	let dragOffset = { x: 0, y: 0 };
 	let currentText = note.text;
 	let currentPosition = { x: note.x, y: note.y };
+	let boardRect: DOMRect | null = null;
 	
 	// Update current values when note prop changes
 	$: currentText = note.text;
@@ -56,20 +57,22 @@
 			y: event.clientY - rect.top
 		};
 		
+		// Cache the board rect to avoid repeated getBoundingClientRect calls
+		boardRect = noteElement.parentElement?.getBoundingClientRect() || null;
+		
 		noteElement.classList.add('dragging');
 		event.preventDefault();
 	}
 	
 	function handleDrag(event: MouseEvent) {
-		if (!isDragging) return;
-		
-		const boardRect = noteElement.parentElement?.getBoundingClientRect();
-		if (!boardRect) return;
+		if (!isDragging || !boardRect) return;
 		
 		const newX = event.clientX - boardRect.left - dragOffset.x;
 		const newY = event.clientY - boardRect.top - dragOffset.y;
 		
-		currentPosition = { x: newX, y: newY };
+		// Update position directly without reactive variables for smoother dragging
+		noteElement.style.left = `${newX}px`;
+		noteElement.style.top = `${newY}px`;
 	}
 	
 	function stopDrag() {
@@ -78,9 +81,14 @@
 		isDragging = false;
 		noteElement.classList.remove('dragging');
 		
+		// Get the final position from the element's style
+		const finalX = parseFloat(noteElement.style.left) || currentPosition.x;
+		const finalY = parseFloat(noteElement.style.top) || currentPosition.y;
+		
 		// Update position in local state
-		note.x = currentPosition.x;
-		note.y = currentPosition.y;
+		currentPosition = { x: finalX, y: finalY };
+		note.x = finalX;
+		note.y = finalY;
 		note.updatedAt = Date.now();
 		dispatch('update', note);
 	}
@@ -175,9 +183,19 @@
 		--color-blue: #dbeafe;
 		--color-green: #dcfce7;
 		--color-purple: #e9d5ff;
+		position: absolute;
+		width: 200px;
+		height: 150px;
+		cursor: move;
+		user-select: none;
 	}
 	
 	.sticky-note:hover .opacity-0 {
 		opacity: 1;
+	}
+	
+	.sticky-note.dragging {
+		transition: none !important;
+		z-index: 1000;
 	}
 </style>
